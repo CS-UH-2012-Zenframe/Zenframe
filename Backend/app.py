@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
-from flask_pymongo import PyMongo
 from flask_cors import CORS
+from pymongo import MongoClient
 from bson import ObjectId
 from dotenv import load_dotenv
 import os
@@ -13,8 +13,12 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # MongoDB Configuration
-app.config["MONGO_URI"] = os.getenv("MONGODB_URI") + os.getenv("DATABASE_NAME")
-mongo = PyMongo(app)
+mongodb_uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
+database_name = os.getenv("DATABASE_NAME", "zenframe")
+
+# Create MongoDB client
+client = MongoClient(mongodb_uri)
+app.db = client[database_name]
 
 # Helper function to convert ObjectId to string
 def parse_json(data):
@@ -26,12 +30,13 @@ def parse_json(data):
                 data[key] = str(value)
             elif isinstance(value, (dict, list)):
                 data[key] = parse_json(value)
+            elif isinstance(value, datetime.datetime):
+                data[key] = value.isoformat()
         return data
     return data
 
 @app.route("/news", methods=["GET"])
 def get_news():
-    # TODO before calling this, we need to have stored some news fetched from the API into our mongodb database
     # Get query parameters
     positivity = request.args.get("positivity", type=float)
     interest = request.args.get("interest")
@@ -44,19 +49,18 @@ def get_news():
         query["interest"] = interest
     
     # Fetch news articles
-    news = list(mongo.db.news.find(query))
+    news = list(app.db.news.find(query))
     return jsonify(parse_json(news))
 
 @app.route("/news/<id>", methods=["GET"])
 def get_news_detail(id):
-    # TODO same as previous one
     try:
         # Find news article and its comments
-        news = mongo.db.news.find_one({"_id": ObjectId(id)})
+        news = app.db.news.find_one({"_id": ObjectId(id)})
         if not news:
             return jsonify({"error": "News article not found"}), 404
             
-        comments = list(mongo.db.comments.find({"news_id": ObjectId(id)}))
+        comments = list(app.db.comments.find({"news_id": ObjectId(id)}))
         news["comments"] = comments
         
         return jsonify(parse_json(news))
@@ -66,7 +70,7 @@ def get_news_detail(id):
 @app.route("/news/<id>/comments", methods=["GET"])
 def get_comments(id):
     try:
-        comments = list(mongo.db.comments.find({"news_id": ObjectId(id)}))
+        comments = list(app.db.comments.find({"news_id": ObjectId(id)}))
         return jsonify(parse_json(comments))
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -86,10 +90,10 @@ def add_comment(id):
             "created_at": datetime.datetime.utcnow()
         }
         
-        result = mongo.db.comments.insert_one(comment)
+        result = app.db.comments.insert_one(comment)
         comment["_id"] = str(result.inserted_id)
         
-        return jsonify(comment), 201
+        return jsonify(parse_json(comment)), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
