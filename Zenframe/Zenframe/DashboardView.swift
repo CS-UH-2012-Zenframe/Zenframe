@@ -4,31 +4,45 @@
 //
 //  Created by Muhammad Ali Asgar Fataymamode on 11/04/2025.
 //
-
 import SwiftUI
 
 struct DashboardView: View {
     var body: some View {
         TabView {
-            HomePage()
-                .tabItem {
-                    Label("Home", systemImage: "house.fill")
-                }
+            NavigationStack {
+                HomePage()
+            }
+            .tabItem {
+                Label("Home", systemImage: "house.fill")
+            }
 
-            BookmarksPage()
-                .tabItem {
-                    Label("Bookmarks", systemImage: "bookmark.fill")
-                }
+            NavigationStack {
+                BookmarksPage()
+            }
+            .tabItem {
+                Label("Bookmarks", systemImage: "bookmark.fill")
+            }
 
-            JournalPage()
-                .tabItem {
-                    Label("Journal", systemImage: "book.closed.fill")
-                }
+            NavigationStack {
+                JournalPage()
+            }
+            .tabItem {
+                Label("Journal", systemImage: "book.closed.fill")
+            }
 
-            ProfilePage()
-                .tabItem {
-                    Label("Profile", systemImage: "person.crop.circle.fill")
-                }
+            NavigationStack {
+                ProfilePage()
+            }
+            .tabItem {
+                Label("Profile", systemImage: "person.crop.circle.fill")
+            }
+
+            NavigationStack {
+                CrisisSupportView()
+            }
+            .tabItem {
+                Label("Crisis", systemImage: "exclamationmark.triangle.fill")
+            }
         }
     }
 }
@@ -36,4 +50,38 @@ struct DashboardView: View {
 #Preview {
     DashboardView()
 }
+
+
+
+//import SwiftUI
+//
+//struct DashboardView: View {
+//    var body: some View {
+//        TabView {
+//            HomePage()
+//                .tabItem {
+//                    Label("Home", systemImage: "house.fill")
+//                }
+//
+//            BookmarksPage()
+//                .tabItem {
+//                    Label("Bookmarks", systemImage: "bookmark.fill")
+//                }
+//
+//            JournalPage()
+//                .tabItem {
+//                    Label("Journal", systemImage: "book.closed.fill")
+//                }
+//
+//            ProfilePage()
+//                .tabItem {
+//                    Label("Profile", systemImage: "person.crop.circle.fill")
+//                }
+//        }
+//    }
+//}
+//
+//#Preview {
+//    DashboardView()
+//}
 
