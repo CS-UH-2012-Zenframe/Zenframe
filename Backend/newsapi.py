@@ -9,7 +9,7 @@ api_token = 'YEj5RG7xYUNNsOpqg6uPB8P3H7OS0aoBap1lxImQ'
 
 seen_titles = set()
 page = 1
-max_pages = 5  # change this as needed
+max_pages = 100  # change this as needed
 
 def is_valid_headline(title):
     if not title:
