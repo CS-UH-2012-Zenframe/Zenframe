@@ -18,7 +18,7 @@ struct SignUpPage: View {
                 .font(.title)
                 .bold()
 
-            TextField("Full Name", text: $name)
+            TextField("Full Names", text: $name)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
 
             TextField("Email", text: $email)

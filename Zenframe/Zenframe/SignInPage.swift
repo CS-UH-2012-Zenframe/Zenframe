@@ -27,7 +27,7 @@ struct SignInPage: View {
                 .textFieldStyle(RoundedBorderTextFieldStyle())
 
             Button("Log In") {
-                if email.lowercased() == "asgarfataymamode@gmail.com" && password == "asgar" {
+                if email.lowercased() == "absera@gmail.com" && password == "absera" {
                     navigateToDashboard = true
                     errorMessage = nil
                 } else {
