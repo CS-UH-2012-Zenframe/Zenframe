@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -26,16 +26,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		78C685642DA6BE6C00CEB439 /* Zenframe */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Zenframe;
-			sourceTree = "<group>";
-		};
-		7BD0D73B2DB29D3400579933 /* ZenframeTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ZenframeTests;
-			sourceTree = "<group>";
-		};
+		78C685642DA6BE6C00CEB439 /* Zenframe */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Zenframe; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,7 +52,6 @@
 			isa = PBXGroup;
 			children = (
 				78C685642DA6BE6C00CEB439 /* Zenframe */,
-				7BD0D73B2DB29D3400579933 /* ZenframeTests */,
 				78C685632DA6BE6C00CEB439 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -113,9 +103,6 @@
 			dependencies = (
 				7BD0D73F2DB29D3400579933 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				7BD0D73B2DB29D3400579933 /* ZenframeTests */,
-			);
 			name = ZenframeTests;
 			packageProductDependencies = (
 				7BD0D7472DB29FB600579933 /* ViewInspector */,
@@ -144,6 +131,7 @@
 				};
 			};
 			buildConfigurationList = 78C6855D2DA6BE6C00CEB439 /* Build configuration list for PBXProject "Zenframe" */;
+			compatibilityVersion = "Xcode 15.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -155,7 +143,6 @@
 			packageReferences = (
 				7BD0D7462DB29FB600579933 /* XCRemoteSwiftPackageReference "ViewInspector" */,
 			);
-			preferredProjectObjectVersion = 77;
 			productRefGroup = 78C685632DA6BE6C00CEB439 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
