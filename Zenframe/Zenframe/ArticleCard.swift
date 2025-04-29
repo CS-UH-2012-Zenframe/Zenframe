@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct ArticleCard: View {
-    let article: Article
+    let article: ArticleSummary
 
     var badgeColor: Color {
         switch article.positivity {
@@ -20,7 +20,7 @@ struct ArticleCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(article.title)
+                Text(article.headline)
                     .font(.subheadline)
                     .fontWeight(.semibold)
 
@@ -34,12 +34,12 @@ struct ArticleCard: View {
                     .cornerRadius(8)
             }
 
-            Text(article.summary)
+            Text(article.excerpt)
                 .font(.caption)
                 .foregroundColor(.gray)
                 .lineLimit(2)
 
-            NavigationLink(destination: ArticleDetailView(article: article)) {
+            NavigationLink(destination: ArticleDetailView(newsId: article.news_id)) {
                 Text("Read More")
                     .font(.caption)
                     .foregroundColor(.blue)

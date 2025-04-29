@@ -8,20 +8,21 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject var sessionStore: SessionStore
+    
     var body: some View {
-//        VStack {
-//            Image(systemName: "globe")
-//                .imageScale(.large)
-//                .foregroundStyle(.tint)
-//            Text("Hello, world!")
-//        }
-//        .padding()
         NavigationStack {
-                    StartingPage()
-                }
+            if sessionStore.isAuthenticated {
+                DashboardView()
+                    .environmentObject(sessionStore)
+            } else {
+                StartingPage()
+            }
+        }
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(SessionStore())
 }

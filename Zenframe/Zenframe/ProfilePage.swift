@@ -1,99 +1,80 @@
-//
-//  ProfilePage.swift
-//  Zenframe
-//
-//  Created by Muhammad Ali Asgar Fataymamode on 11/04/2025.
-//
-
-//import SwiftUI
-//
-//struct ProfilePage: View {
-//    var body: some View {
-//        VStack {
-//            Text("Profile")
-//                .font(.title)
-//                .bold()
-//            // Add toggles, preferences, logout button, etc.
-//        }
-//        .padding()
-//    }
-//}
-//
-//#Preview {
-//    ProfilePage()
-//}
-
-
 import SwiftUI
 
 struct ProfilePage: View {
+    @EnvironmentObject var sessionStore: SessionStore
+    
+    // NAV FLAG -> pushes to StartingPage after sign-out
+    @State private var gotoStart = false
+
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(spacing: 20) {
-                    Image(systemName: "person.crop.circle.fill")
-                        .resizable()
-                        .frame(width: 100, height: 100)
-                        .foregroundColor(.blue)
-                        .padding()
+        ScrollView {
+            VStack(spacing: 24) {
 
-                    Text("User: Asgar Fataymamode")
-                        .font(.title2)
-                        .fontWeight(.bold)
+                Image(systemName: "person.crop.circle.fill")
+                    .resizable()
+                    .frame(width: 100, height: 100)
+                    .foregroundColor(.blue)
 
-                    Text("Email: asgar@gmail.com")
+                Text(fullName)
+                    .font(.title2).bold()
+
+                if let email = sessionStore.userEmail {
+                    Text(email)
                         .font(.subheadline)
-                        .foregroundColor(.gray)
-
-                    Divider()
-
-                    NavigationLink(destination: EditProfileView()) {
-                        profileButtonLabel("Edit Profile")
-                    }
-
-                    NavigationLink(destination: AboutView()) {
-                        profileButtonLabel("About")
-                    }
-
-                    NavigationLink(destination: RulesAndRegulationsView()) {
-                        profileButtonLabel("Rules & Regulations")
-                    }
-
-                    NavigationLink(destination: SettingsView()) {
-                        profileButtonLabel("Settings")
-                    }
-
-                    Divider()
-
-                    Button(action: {
-                        // log out action
-                    }) {
-                        Text("Log Out")
-                            .foregroundColor(.red)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
-                            .padding(.horizontal, 20)
-                    }
+                        .foregroundColor(.secondary)
                 }
+
+                Divider()
+
+                // rows
+                NavigationLink(destination: AboutView())                  { profileRow("About") }
+                NavigationLink(destination: RulesAndRegulationsView())    { profileRow("Rules & Regulations") }
+                NavigationLink(destination: SettingsView())               { profileRow("Settings") }
+
+                Divider()
+
+                // LOG-OUT → clear creds & trigger nav
+                Button(role: .destructive) {
+                    sessionStore.signOut()
+                    gotoStart = true
+                } label: {
+                    Text("Log Out")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
             }
+            .padding()
             .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.inline)
         }
+        // pushes StartingPage once gotoStart flips
+        .navigationDestination(isPresented: $gotoStart) {
+            StartingPage().environmentObject(sessionStore)
+        }
     }
 
-    private func profileButtonLabel(_ title: String) -> some View {
-        Text(title)
-            .foregroundColor(.blue)
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(Color(.systemGray6))
-            .cornerRadius(10)
-            .padding(.horizontal, 20)
+    // MARK: – helpers
+    private var fullName: String {
+        [sessionStore.firstName, sessionStore.lastName]
+            .compactMap { $0 }
+            .joined(separator: " ")
+            .ifEmpty("User Profile")
+    }
+
+    private func profileRow(_ title: String) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Image(systemName: "chevron.right")
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(10)
     }
 }
 
-#Preview {
-    ProfilePage()
+// tiny utility
+private extension String {
+    func ifEmpty(_ fallback: String) -> String { isEmpty ? fallback : self }
 }

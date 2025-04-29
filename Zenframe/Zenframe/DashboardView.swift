@@ -7,10 +7,13 @@
 import SwiftUI
 
 struct DashboardView: View {
+    @EnvironmentObject var sessionStore: SessionStore
+    
     var body: some View {
         TabView {
             NavigationStack {
                 HomePage()
+                    .environmentObject(sessionStore)
             }
             .tabItem {
                 Label("Home", systemImage: "house.fill")
@@ -32,6 +35,7 @@ struct DashboardView: View {
 
             NavigationStack {
                 ProfilePage()
+                    .environmentObject(sessionStore)
             }
             .tabItem {
                 Label("Profile", systemImage: "person.crop.circle.fill")
@@ -49,6 +53,7 @@ struct DashboardView: View {
 
 #Preview {
     DashboardView()
+        .environmentObject(SessionStore())
 }
 
 

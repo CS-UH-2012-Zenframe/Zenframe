@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct StartingPage: View {
+    @EnvironmentObject var sessionStore: SessionStore
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 30) {
@@ -15,7 +17,7 @@ struct StartingPage: View {
                     .font(.largeTitle)
                     .bold()
                 
-                NavigationLink(destination: SignInPage()) {
+                NavigationLink(destination: SignInPage().environmentObject(sessionStore)) {
                     Text("Sign In")
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -24,7 +26,7 @@ struct StartingPage: View {
                         .cornerRadius(10)
                 }
 
-                NavigationLink(destination: SignUpPage()) {
+                NavigationLink(destination: SignUpPage().environmentObject(sessionStore)) {
                     Text("Sign Up")
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -40,4 +42,5 @@ struct StartingPage: View {
 
 #Preview {
     StartingPage()
+        .environmentObject(SessionStore())
 }
