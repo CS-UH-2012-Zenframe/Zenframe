@@ -1,10 +1,3 @@
-//
-//  CrisisSupportView.swift
-//  Zenframe
-//
-//  Created by Muhammad Ali Asgar Fataymamode on 17/04/2025.
-//
-
 import SwiftUI
 
 struct CrisisSupportView: View {
@@ -14,9 +7,6 @@ struct CrisisSupportView: View {
                 Text("CRISIS SUPPORT")
                     .font(.title2)
                     .fontWeight(.bold)
-
-//                Text("Stay informed, stay calm.")
-//                    .foregroundColor(.black.opacity(0.7))
 
                 Text("You are not alone. Help is available!!")
                     .fontWeight(.medium)
@@ -52,69 +42,5 @@ struct CrisisSupportView: View {
         .navigationTitle("Crisis Support")
         .navigationBarTitleDisplayMode(.inline)
         .background(Color("ZenGreen").ignoresSafeArea())
-    }
-}
-
-
-
-
-//
-//  ContactRow.swift
-//  Zenframe
-//
-//  Created by Muhammad Ali Asgar Fataymamode on 18/04/2025.
-//
-
-import SwiftUI
-
-struct ContactRow: View {
-    let title: String
-    let detail: String
-    let action: String
-    let color: Color
-
-    @State private var showCallPopup = false
-    @State private var showError = false
-    @Environment(\.presentationMode) var presentationMode
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .fontWeight(.semibold)
-            Text(detail)
-                .foregroundColor(.black.opacity(0.7))
-
-            HStack {
-                Spacer()
-                Button(action: {
-                    if title.contains("Teen Line") {
-                        showError = true
-                    } else {
-                        showCallPopup = true
-                    }
-                }) {
-                    Text(action)
-                        .font(.caption)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(color)
-                        .cornerRadius(20)
-                }
-            }
-        }
-        .padding()
-        .background(Color.white.opacity(0.3))
-        .cornerRadius(15)
-        .sheet(isPresented: $showCallPopup) {
-            CallPopupView(title: title)
-        }
-        .alert("Call Failed", isPresented: $showError) {
-            Button("Go to Self Support", role: .cancel) {
-                // You could navigate or trigger something here
-            }
-        } message: {
-            Text("Unable to place the call. Try visiting the Self Support page for help.")
-        }
     }
 }

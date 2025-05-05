@@ -1,162 +1,162 @@
 """
-Ingest news → rewrite & summarise via LLM → store in Mongo.
-Called by the 2-hour APScheduler job.
+Ingest news → send ONE prompt to Llama‑3 → get:
+• rewritten_headline
+• summary (≤ 2 sentences, positive tone)
+• positivity (1‑100)
+• category (one of 10 canonical labels)
+Then upsert into Mongo.
+
+Retries, JSON‑parsing guard, and duplicate‑key handling included.
 """
+
 from __future__ import annotations
-import os, logging, time, html, re, hashlib
+import os, logging, time, html, re, json
 from datetime import datetime
+from typing import Tuple, Dict, Any
 
 import requests
 from together import Together
-from textblob import TextBlob
-from bson.objectid import ObjectId
 from pymongo.errors import DuplicateKeyError
+from bson import ObjectId
 
 from ..extensions import mongo
-from ..models import create_news
 
-# ---------------------------------------------------------------------
-ALLOWED_CATEGORIES = {
+# -----------------------------------------------------------------------------
+NEWS_API   = "https://api.thenewsapi.com/v1/news/all"
+TOGETHER   = Together(api_key=os.getenv("TOGETHER_API_KEY"))
+LLM_MODEL  = os.getenv("TOGETHER_MODEL", "meta-llama/Llama-3-8b-chat-hf")
+REQUEST_TIMEOUT = 12  # s
+
+ALLOWED_CATEGORIES = [
     "world", "politics", "business", "tech", "science",
     "health", "sports", "entertainment", "travel", "lifestyle"
-}
-DEFAULT_CATEGORY = "other"
+]
 
-# ---------------------------------------------------------------------
-NEWS_API = "https://api.thenewsapi.com/v1/news/all"
-TOGETHER_CLIENT = Together(api_key=os.getenv("TOGETHER_API_KEY"))
-MODEL = os.getenv("TOGETHER_MODEL", "meta-llama/Llama-3-8b-chat-hf")
+# unique index (idempotent)
+# mongo.db.News_reserve.create_index("source_url", unique=True, sparse=True)
 
-LANG = os.getenv("NEWS_LANGUAGE", "en")
-PAGES = int(os.getenv("NEWS_MAX_PAGES", 3))
-PAGE_SIZE = int(os.getenv("NEWS_PAGE_SIZE", 100))
-REQUEST_TIMEOUT = 10
+# -----------------------------------------------------------------------------
+def _clean(text: str | None) -> str:
+    """Strip HTML & collapse whitespace."""
+    if not text:
+        return ""
+    text = re.sub(r"<[^>]+>", "", html.unescape(text))
+    return re.sub(r"\s+", " ", text).strip()
 
-
-def _positivity(text: str) -> int:
-    """-1..1 → 0..100"""
-    return int((TextBlob(text).sentiment.polarity + 1) * 50)
-
-def _norm_category(raw: str | None) -> str:
-    if not raw:
-        return DEFAULT_CATEGORY
-    raw_l = raw.lower()
-    if raw_l in ALLOWED_CATEGORIES:
-        return raw_l
-    # fuzzy map: ‘technology’ → ‘tech’, ‘sci-tech’ → ‘tech’, etc.
-    for cat in ALLOWED_CATEGORIES:
-        if cat in raw_l:
-            return cat
-    return DEFAULT_CATEGORY
-
-
-def _clean(txt: str) -> str:
-    txt = re.sub(r"<[^>]+>", "", html.unescape(txt or ""))
-    return re.sub(r"\s+", " ", txt).strip()
-
-
-def _summary(full: str, sentences: int = 2) -> str:
-    parts = re.split(r"(?<=[.!?]) +", _clean(full))
-    return " ".join(parts[:sentences]) or _clean(full)[:200]
-
-
-def _rewrite_llm(title: str, body: str) -> tuple[str, str]:
+# -----------------------------------------------------------------------------
+def _llm_analyse(title: str, body: str) -> Tuple[str, str, int, str]:
     """
-    Returns (headline, summary) with zero boilerplate and zero formatting only the string.
-    Model must answer with exactly TWO lines:
-      line-1 → rewritten headline (≤ 15 words)
-      line-2 → two-sentence summary
+    Returns (rewritten_headline, summary, positivity, category).
+    If anything goes wrong → raise.
     """
     prompt = (
-        "Rewrite the following news headline and give a positive-tone 2-sentence summary.\n"
-        "Answer with **exactly two lines**:\n"
-        "1) Your rewritten headline (max 15 words, no prefix or quotes, no formatting, only plain string, no title or any extra information just the rewritten headline).\n"
-        "2) The summary (exactly 2 sentences, no prefix, or quotes, no formatting, only plain string, no titles like summary or similar).\n\n"
+        "You are a news rewriter and sentiment analyser. "
+        "Given an original headline & article text, produce JSON **exactly** in "
+        "this format (no markdown, no commentary):\n\n"
+        "{\n"
+        '  "rewritten_headline": "<headline ≤ 15 words, no quotes>",\n'
+        '  "summary": "<2 sentences, positive tone>",\n'
+        '  "positivity": <integer 1‑100, 100 happiest>,\n'
+        f'  "category": "<one of {ALLOWED_CATEGORIES}>"\n'
+        "}\n\n"
         f"Original headline: {title}\n"
-        f"Article text: {body[:1000]}\n"
+        f"Article text: {body[:1500]}\n"
     )
 
-    for attempt in range(3):
-        try:
-            resp = TOGETHER_CLIENT.chat.completions.create(
-                model=MODEL,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.6,
-            )
-            raw = resp.choices[0].message.content.strip()
-            lines = [l.strip(" *-:_") for l in raw.splitlines() if l.strip()]
-            if len(lines) < 2:
-                raise ValueError("wrong format")
-            headline = re.sub(r"^Rewritten headline[:\- ]*", "", lines[0], flags=re.I)
-            summary  = re.sub(r"^Summary[:\- ]*", "", lines[1], flags=re.I)
-            return headline[:180], summary
-        except Exception as exc:
-            logging.warning("LLM attempt %d failed: %s", attempt + 1, exc)
-            time.sleep(2 * (attempt + 1))
-    # fallback – keep original title & heuristic summary
-    return title, _summary(body)
+    resp = TOGETHER.chat.completions.create(
+        model=LLM_MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.6,
+    )
+    raw = resp.choices[0].message.content.strip()
 
+    try:
+        data: Dict[str, Any] = json.loads(raw)
+        head   = str(data["rewritten_headline"]).strip()
+        summ   = str(data["summary"]).strip()
+        pos    = int(data["positivity"])
+        cat    = str(data["category"]).lower()
+        if cat not in ALLOWED_CATEGORIES:
+            cat = "other"
+        pos = max(1, min(100, pos))
+        return head, summ, pos, cat
+    except Exception as exc:
+        raise ValueError(f"Bad LLM JSON: {exc} | Raw: {raw[:120]}")
 
+# -----------------------------------------------------------------------------
+def _fallback(title: str, body: str) -> Tuple[str, str, int, str]:
+    """Emergency fallback if LLM fails."""
+    summary = body[:160] + "…" if len(body) > 160 else body
+    return title, summary, 50, "other"
 
+# -----------------------------------------------------------------------------
 def ingest_once() -> int:
-    # ensure index exists (idempotent)
-    mongo.db.News_reserve.create_index(
-        "source_url", unique=True, sparse=True, background=True
-    )
-
     params = {
         "api_token": os.getenv("NEWS_API_TOKEN"),
-        "language": LANG,
-        "page_size": PAGE_SIZE,
+        "language": os.getenv("NEWS_LANGUAGE", "en"),
+        "page_size": int(os.getenv("NEWS_PAGE_SIZE", 50)),
     }
+    pages = int(os.getenv("NEWS_MAX_PAGES", 3))
 
     inserted = 0
-    for page in range(1, PAGES + 1):
+    for page in range(1, pages + 1):
         params["page"] = page
         try:
             r = requests.get(NEWS_API, params=params, timeout=REQUEST_TIMEOUT)
             r.raise_for_status()
-            data = r.json().get("data", [])
+            articles = r.json().get("data", [])
         except Exception as exc:
-            logging.error("NewsAPI call failed (page %d): %s", page, exc)
-            break    # network is down – try next cycle
+            logging.error("NewsAPI page %d failed: %s", page, exc)
+            break
 
-        for art in data:
+        for art in articles:
             url = art.get("url")
             if not url:
                 continue
-            src_raw = art.get("source")
-            category = _norm_category(
-                src_raw.get("name") if isinstance(src_raw, dict) else src_raw
+
+            body = _clean(
+                " ".join(
+                    filter(
+                        None,
+                        [art.get("content"), art.get("description"), art.get("snippet")],
+                    )
+                )
             )
+            title = art.get("title") or art.get("headline") or ""
+            # ── LLM step with 2 retries ───────────────────────────────
+            for attempt in range(3):
+                try:
+                    head, summ, pos, cat = _llm_analyse(title, body)
+                    break
+                except Exception as exc:
+                    logging.warning("LLM attempt %d failed: %s", attempt + 1, exc)
+                    if attempt == 2:
+                        head, summ, pos, cat = _fallback(title, body)
+                    else:
+                        time.sleep(2 * (attempt + 1))
 
-            orig_head = art.get("title") or ""
-            body_pieces = [
-                art.get("content"),
-                art.get("description"),
-                art.get("snippet")
-            ]
-            full_body  = _clean(" ".join(filter(None, body_pieces)))
-            new_head, summary = _rewrite_llm(orig_head, full_body)
-            positivity = _positivity(full_body or orig_head)
-
+            # ── Upsert into Mongo (dedupe on source_url) ─────────────
             try:
                 res = mongo.db.News_reserve.replace_one(
                     {"source_url": url},
                     {
-                        "headline":      new_head,
-                        "excerpt":       summary,
-                        "positivity":    positivity,
-                        "category":      category,
-                        "full_body":     full_body,
+                        "headline":      head,
+                        "excerpt":       summ,
+                        "positivity":    pos,
+                        "category":      cat,
+                        "full_body":     body,
                         "created_date":  datetime.utcnow(),
                         "source_url":    url,
-                        "orig_headline": orig_head,
+                        "orig_headline": title,
                     },
                     upsert=True,
                 )
                 if res.upserted_id:
                     inserted += 1
             except DuplicateKeyError:
-                continue
+                continue  # race condition dup
 
+        time.sleep(1)  # polite delay between pages
+
+    logging.info("Ingest cycle done – %d new docs", inserted)
+    return inserted

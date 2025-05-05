@@ -20,6 +20,7 @@ struct HomePage: View {
     @State private var offset = 0
     @State private var hasMoreArticles = true
     @State private var showingProfileSheet = false
+    @State private var positiveOnly = false        // NEW
     
     @EnvironmentObject var sessionStore: SessionStore
     
@@ -62,7 +63,28 @@ struct HomePage: View {
                 Text("Stay informed, stay calm.")
                     .font(.subheadline)
                     .foregroundColor(.black.opacity(0.6))
-
+                
+                
+                // Positive‑only toggle
+                Button(action: {
+                    positiveOnly.toggle()
+                    // reset other filters & reload
+                    filterValue = 0
+                    selectedCategory = nil
+                    Task { await loadArticles(refresh: true) }
+                }) {
+                    HStack {
+                        Image(systemName: positiveOnly ? "checkmark.circle.fill" : "circle")
+                            .foregroundColor(positiveOnly ? .mint : .secondary)
+                        Text("Positive News Only")
+                            .fontWeight(positiveOnly ? .bold : .regular)
+                    }
+                    .padding(8)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(.systemGray5))
+                    .cornerRadius(10)
+                }
+                .padding(.bottom, 4)
                 // MARK: Filter By Positivity
                 Button(action: {
                     showPositivityFilter.toggle()
@@ -258,11 +280,18 @@ struct HomePage: View {
         
         do {
             let newArticles = try await APIService.shared.getNews(
-                positivity: filterValue > 0 ? filterValue : nil,
-                category: selectedCategory,
-                limit: 10,
-                offset: offset
+                positivity: positiveOnly ? 66 : (filterValue > 0 ? filterValue : nil),
+                category:   selectedCategory,
+                limit:      10,
+                offset:     offset
             )
+            
+//            let newArticles = try await APIService.shared.getNews(
+//                positivity: filterValue > 0 ? filterValue : nil,
+//                category: selectedCategory,
+//                limit: 10,
+//                offset: offset
+//            )
             
             if refresh {
                 articles = newArticles
@@ -294,18 +323,22 @@ struct ArticleCardView: View {
     
     var badgeColor: Color {
         switch article.positivity {
-        case 75...100: return Color.green
-        case 50..<75: return Color.yellow
-        case 0..<50: return Color.red
-        default: return Color.gray
+        case 66...100:      // high positivity
+            return Color.mint                  // fresh green‑teal
+        case 35..<66:       // mixed / neutral
+            return Color.orange.opacity(0.85)  // modern amber
+        case 0..<35:        // low positivity
+            return Color.pink                  // soft caution
+        default:
+            return .gray                       // fallback
         }
     }
     
     var badgeEmoji: String {
         switch article.positivity {
-        case 75...100: return "😊"
-        case 50..<75: return "😐"
-        case 0..<50: return "😟"
+        case 66...100: return "👍"
+        case 35..<66: return "😐"
+        case 0..<35: return "👎"
         default: return ""
         }
     }
@@ -322,7 +355,7 @@ struct ArticleCardView: View {
                     .font(.caption)
                     .padding(4)
                     .background(badgeColor)
-                    .foregroundColor(.white)
+                    .foregroundColor(.black)
                     .cornerRadius(10)
                 
                 Text(article.category.capitalized)

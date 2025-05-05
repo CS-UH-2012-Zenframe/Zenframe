@@ -24,21 +24,26 @@ struct ArticleDetailView: View {
     let prohibitedWords = ["stupid", "idiot", "hate"]
 
     var badgeColor: Color {
-        guard let article = article else { return .gray }
-        switch article.positivity {
-        case 75...100: return Color.green
-        case 50..<75: return Color.yellow
-        case 0..<50: return Color.red
-        default: return Color.gray
+        guard let score = article?.positivity else { return .gray }
+
+        switch score {
+        case 66...100:      // high positivity
+            return Color.mint                  // fresh green‑teal
+        case 35..<66:       // mixed / neutral
+            return Color.orange.opacity(0.85)  // modern amber
+        case 0..<35:        // low positivity
+            return Color.pink                  // soft caution
+        default:
+            return .gray                       // fallback
         }
     }
 
     var badgeEmoji: String {
         guard let article = article else { return "" }
         switch article.positivity {
-        case 75...100: return "😊"
-        case 50..<75: return "😐"
-        case 0..<50: return "😟"
+        case 66...100: return "👍"
+        case 36..<65: return "😐"
+        case 0..<35: return "👎"
         default: return ""
         }
     }
@@ -89,7 +94,7 @@ struct ArticleDetailView: View {
                             .font(.caption)
                             .padding(6)
                             .background(badgeColor)
-                            .foregroundColor(.white)
+                            .foregroundColor(.black)
                             .cornerRadius(10)
                         
                         Text(article.category.capitalized)
@@ -104,12 +109,12 @@ struct ArticleDetailView: View {
 
                     Text(article.excerpt)
                         .font(.body)
-                        .foregroundColor(.black.opacity(0.8))
+                        .foregroundColor(.white.opacity(0.8))
                         .padding(.bottom, 8)
                     
                     Text(article.full_body)
                         .font(.body)
-                        .foregroundColor(.black.opacity(0.8))
+                        .foregroundColor(.white.opacity(0.8))
 
                     Button("READ FULL STORY") {
                         showingSafari = true
@@ -122,7 +127,7 @@ struct ArticleDetailView: View {
                     )
                 }
                 .padding()
-                .background(Color.white.opacity(0.3))
+//                .background(Color.white.opacity(0.3))
                 .cornerRadius(20)
 
                 // Comments Section
@@ -130,18 +135,23 @@ struct ArticleDetailView: View {
                     .font(.headline)
 
                 ForEach(article.comments.reversed()) { comment in
-                    VStack(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(alignment: .top, spacing: 6) {
+                            Text("Anonymous")                 // ← fixed label
+                                .font(.subheadline)
+
+                            Text(comment.comment_content)
+                                .padding(8)
+                                .background(Color.white.opacity(0.3))
+                                .cornerRadius(12)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+
                         if let date = formatDate(comment.created_date.date) {
                             Text(date)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                        
-                        Text(comment.comment_content)
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.white.opacity(0.3))
-                            .cornerRadius(20)
                     }
                 }
 
@@ -153,6 +163,7 @@ struct ArticleDetailView: View {
                         .padding()
                         .background(Color.white)
                         .cornerRadius(25)
+                        .foregroundColor(Color.black)
 
                     if let error = errorMessage {
                         Text(error)
@@ -177,12 +188,12 @@ struct ArticleDetailView: View {
                     .disabled(isSubmittingComment || !isValidComment)
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(isValidComment ? Color.blue : Color.blue.opacity(0.3))
+                    .background(isValidComment ? Color.green : Color.green.opacity(0.3))
                     .foregroundColor(.white)
                     .cornerRadius(10)
                 }
                 .padding()
-                .background(Color.white.opacity(0.3))
+//                .background(Color.white.opacity(0.3))
                 .cornerRadius(20)
             }
             .padding()
