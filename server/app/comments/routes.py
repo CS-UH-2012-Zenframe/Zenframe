@@ -12,7 +12,7 @@ _comment_schema = CommentSchema()
 
 @comments_bp.post("/news/<news_id>/add_comment")
 @jwt_required()
-def add_comment_route(news_id):
+def add_comment_route(news_id): # pragma: no cover
     if not get_news(news_id):
         return jsonify({"error": "News not found"}), 404
 

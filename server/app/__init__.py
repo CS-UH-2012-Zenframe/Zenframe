@@ -10,7 +10,7 @@ from .comments.routes import comments_bp
 from .scheduler import register_jobs
 
 
-def create_app() -> Flask:
+def create_app(start_scheduler=True) -> Flask:
     app = Flask(__name__)
     app.config.from_object(Config())
 
@@ -20,7 +20,8 @@ def create_app() -> Flask:
     cors.init_app(app, resources={r"/*": {"origins": "*"}})
     apscheduler.init_app(app)
     register_jobs(apscheduler)
-    apscheduler.start()
+    if start_scheduler:
+        apscheduler.start()
 
     # ── Blueprints ─────────────────────────────
     app.register_blueprint(auth_bp, url_prefix="")
