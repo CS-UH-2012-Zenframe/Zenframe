@@ -19,12 +19,12 @@ struct DashboardView: View {
                 Label("Home", systemImage: "house.fill")
             }
 
-            NavigationStack {
-                BookmarksPage()
-            }
-            .tabItem {
-                Label("Bookmarks", systemImage: "bookmark.fill")
-            }
+//            NavigationStack {
+//                BookmarksPage()
+//            }
+//            .tabItem {
+//                Label("Bookmarks", systemImage: "bookmark.fill")
+//            }
 
             NavigationStack {
                 JournalPage()

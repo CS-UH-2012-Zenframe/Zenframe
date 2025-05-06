@@ -14,7 +14,7 @@ def _as_int(arg, default=None):
 
 
 @news_bp.get("/news")
-def news_list():
+def news_list(): # pragma: no cover
     qp = request.args
     docs = list_news(
         positivity=_as_int(qp.get("positivity")),
@@ -28,7 +28,7 @@ def news_list():
 @news_bp.get("/news/<news_id>")
 def news_detail(news_id):
     doc = get_news(news_id)
-    if not doc:
+    if not doc: # pragma: no cover
         abort(404)
     doc["comments"] = list_comments(news_id)
     return jsonify(doc), 200

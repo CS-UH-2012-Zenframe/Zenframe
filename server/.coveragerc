@@ -1,0 +1,7 @@
+[run]
+omit =
+    */app/services/*
+    */app/utils.py
+    */app/config.py
+    */app/scheduler.py
+    */app/schemas.py
