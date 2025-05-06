@@ -64,8 +64,6 @@ DETAIL INFO ABOUT RUNNING FRONTEND TESTS
 
 This repository is distributed for educational purposes only. © 2025 the Zenframe team.
 
----
-
 ## Authors
 
 Absera T., Hariharan J., Muhammad Asgar F., Muhammad Musa K. — with guidance from CS-UH 2012 staff.&#x20;
