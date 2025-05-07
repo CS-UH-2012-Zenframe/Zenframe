@@ -125,6 +125,59 @@ struct ArticleDetailView: View {
                         RoundedRectangle(cornerRadius: 10)
                             .stroke(Color.black, lineWidth: 1)
                     )
+                    
+                    HStack(spacing: 40) {
+                    
+                    Button("😁") {
+                            showingSafari = false
+                        }
+                        .padding(.vertical, 6)
+                        .frame(maxWidth: .infinity)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.black, lineWidth: 1)
+                        )
+                        Text("5")
+                            .font(.body)
+                            .foregroundColor(.white.opacity(0.8))
+
+                        Button("😐") {
+                                showingSafari = false
+                            }
+                            .padding(.vertical, 6)
+                            .frame(maxWidth: .infinity)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.black, lineWidth: 1)
+                            )
+                        Text("2")
+                            .font(.body)
+                            .foregroundColor(.white.opacity(0.8))
+
+                        
+                        Button("🥺") {
+                                showingSafari = false
+                            }
+                            .padding(.vertical, 6)
+                            .frame(maxWidth: .infinity)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.black, lineWidth: 1)
+                            )
+                        Text("1")
+                            .font(.body)
+                            .foregroundColor(.white.opacity(0.8))
+
+//                    Button(action: { viewModel.addReaction(.neutral) }) {
+//                        Text(ReactionType.neutral.emoji)
+//                            .font(.largeTitle)
+//                    }
+//                    Button(action: { viewModel.addReaction(.happy) }) {
+//                        Text(ReactionType.happy.emoji)
+//                            .font(.largeTitle)
+//                    }
+                }
+                .padding(.top, 10)
                 }
                 .padding()
 //                .background(Color.white.opacity(0.3))
