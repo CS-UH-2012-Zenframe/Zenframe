@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import List, Optional, Dict, Any
 
 from bson import ObjectId
+from bson.errors import InvalidId
 from passlib.hash import bcrypt
 
 from .extensions import mongo
@@ -28,7 +29,10 @@ def get_user_by_email(email: str) -> Optional[Dict]:
 
 
 def get_user_by_id(uid: str) -> Optional[Dict]:
-    return mongo.db.Users.find_one({"_id": ObjectId(uid)})
+    try:
+        return mongo.db.Users.find_one({"_id": ObjectId(uid)})
+    except InvalidId:
+        return None
 
 
 def verify_password(raw: str, hashed: str) -> bool:
@@ -72,11 +76,14 @@ def list_news(
 
 
 def get_news(news_id: str) -> Optional[Dict]:
-    doc = mongo.db.News_reserve.find_one({"_id": ObjectId(news_id)})
-    if not doc:
+    try:
+        doc = mongo.db.News_reserve.find_one({"_id": ObjectId(news_id)})
+        if not doc:
+            return None
+        doc["news_id"] = str(doc.pop("_id"))
+        return doc
+    except InvalidId:
         return None
-    doc["news_id"] = str(doc.pop("_id"))
-    return doc
 
 
 # ───────────────────────── COMMENTS ───────────────────────────

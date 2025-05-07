@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, abort
 from ..models import list_news, get_news, list_comments
 from ..utils import obj_id
+from bson.errors import InvalidId
 
 
 news_bp = Blueprint("news", __name__)
@@ -27,8 +28,11 @@ def news_list():
 
 @news_bp.get("/news/<news_id>")
 def news_detail(news_id):
-    doc = get_news(news_id)
-    if not doc:
-        abort(404)
-    doc["comments"] = list_comments(news_id)
-    return jsonify(doc), 200
+    try:
+        doc = get_news(news_id)
+        if not doc:
+            abort(404)
+        doc["comments"] = list_comments(news_id)
+        return jsonify(doc), 200
+    except InvalidId:
+        return jsonify({"error": "Invalid ID format"}), 400

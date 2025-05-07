@@ -9,5 +9,5 @@ passlib[bcrypt]>=1.7
 Flask-APScheduler>=1.13
 requests
 together
-textblob           # already added earlier
+# textblob           # already added earlier
 nltk               # only needed once to download corpora
