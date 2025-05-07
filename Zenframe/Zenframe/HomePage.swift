@@ -211,7 +211,20 @@ struct HomePage: View {
                 ScrollView {
                     LazyVStack(spacing: 15) {
                         ForEach(articles) { article in
-                            NavigationLink(destination: ArticleDetailView(newsId: article.news_id)) {
+//                            NavigationLink(destination: ArticleDetailView(viewModel: ArticleViewModel(article: Article(
+//                                title: article.headline,
+//                                summary: article.excerpt,
+//                                positivity: article.positivity
+//                            )))) {
+//                                ArticleCardView(article: article)
+//                            }
+//                            .buttonStyle(PlainButtonStyle())
+                            // Find this code in your HomePage.swift file inside the LazyVStack's ForEach loop
+                            NavigationLink(destination: ArticleDetailView(viewModel: ArticleViewModel(article: Article(
+                                title: article.headline,
+                                summary: article.excerpt,
+                                positivity: article.positivity
+                            )))) {
                                 ArticleCardView(article: article)
                             }
                             .buttonStyle(PlainButtonStyle())
@@ -317,14 +330,124 @@ struct HomePage: View {
         await loadArticles(refresh: false)
     }
 }
+//
+//struct ArticleCardView: View {
+//    let article: ArticleSummary
+//    @StateObject private var viewModel: ArticleViewModel
+//    
+//    init(article: ArticleSummary) {
+//        self.article = article
+//        _viewModel = StateObject(wrappedValue: ArticleViewModel(article: Article(
+//            title: article.headline,
+//            summary: article.excerpt,
+//            positivity: article.positivity
+//        )))
+//    }
+//    
+//    var badgeColor: Color {
+//        switch viewModel.positivity {
+//        case 66...100:      // high positivity
+//            return Color.mint                  // fresh green-teal
+//        case 35..<66:       // mixed / neutral
+//            return Color.orange.opacity(0.85)  // modern amber
+//        case 0..<35:        // low positivity
+//            return Color.pink                  // soft caution
+//        default:
+//            return .gray                       // fallback
+//        }
+//    }
+//    
+//    var badgeEmoji: String {
+//        switch viewModel.positivity {
+//        case 66...100: return "👍"
+//        case 35..<66: return "😐"
+//        case 0..<35: return "👎"
+//        default: return ""
+//        }
+//    }
+//    
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 8) {
+//            Text(article.headline)
+//                .font(.headline)
+//                .lineLimit(2)
+//                .foregroundColor(.primary)
+//            
+//            HStack {
+//                Text("\(viewModel.positivity)% \(badgeEmoji)")
+//                    .font(.caption)
+//                    .padding(4)
+//                    .background(badgeColor)
+//                    .foregroundColor(.black)
+//                    .cornerRadius(10)
+//                
+//                Text(article.category.capitalized)
+//                    .font(.caption)
+//                    .padding(4)
+//                    .background(Color.gray.opacity(0.2))
+//                    .cornerRadius(10)
+//                
+//                Spacer()
+//                
+//                // Format date
+//                if let date = formatDate(article.created_date.date) {
+//                    Text(date)
+//                        .font(.caption)
+//                        .foregroundColor(.secondary)
+//                }
+//            }
+//            
+//            Text(article.excerpt)
+//                .font(.subheadline)
+//                .lineLimit(3)
+//                .foregroundColor(.secondary)
+//            
+//            // Reactions
+//            HStack(spacing: 20) {
+//                Button(action: { viewModel.addReaction(.sad) }) {
+//                    Text(ReactionType.sad.emoji)
+//                        .font(.title2)
+//                }
+//                
+//                Button(action: { viewModel.addReaction(.neutral) }) {
+//                    Text(ReactionType.neutral.emoji)
+//                        .font(.title2)
+//                }
+//                
+//                Button(action: { viewModel.addReaction(.happy) }) {
+//                    Text(ReactionType.happy.emoji)
+//                        .font(.title2)
+//                }
+//                
+//                Spacer()
+//            }
+//            .padding(.top, 5)
+//        }
+//        .padding()
+//        .background(Color(.systemGray6))
+//        .cornerRadius(10)
+//    }
+//    
+//    private func formatDate(_ dateString: String) -> String? {
+//        let formatter = ISO8601DateFormatter()
+//        if let date = formatter.date(from: dateString) {
+//            let outputFormatter = DateFormatter()
+//            outputFormatter.dateStyle = .medium
+//            return outputFormatter.string(from: date)
+//        }
+//        return nil
+//    }
+//}
+
 
 struct ArticleCardView: View {
     let article: ArticleSummary
+    @State private var selectedReaction: ReactionType? = nil
     
     var badgeColor: Color {
         switch article.positivity {
         case 66...100:      // high positivity
-            return Color.mint                  // fresh green‑teal
+            return Color.mint                  // fresh green-teal
         case 35..<66:       // mixed / neutral
             return Color.orange.opacity(0.85)  // modern amber
         case 0..<35:        // low positivity
@@ -378,6 +501,30 @@ struct ArticleCardView: View {
                 .font(.subheadline)
                 .lineLimit(3)
                 .foregroundColor(.secondary)
+            
+            // Enhanced Reactions
+            HStack(spacing: 20) {
+                Button(action: { selectedReaction = .sad }) {
+                    Text(ReactionType.sad.emoji)
+                        .font(.title2)
+                        .foregroundColor(selectedReaction == .sad ? .red : .gray)
+                }
+                
+                Button(action: { selectedReaction = .neutral }) {
+                    Text(ReactionType.neutral.emoji)
+                        .font(.title2)
+                        .foregroundColor(selectedReaction == .neutral ? .yellow : .gray)
+                }
+                
+                Button(action: { selectedReaction = .happy }) {
+                    Text(ReactionType.happy.emoji)
+                        .font(.title2)
+                        .foregroundColor(selectedReaction == .happy ? .green : .gray)
+                }
+                
+                Spacer()
+            }
+            .padding(.top, 5)
         }
         .padding()
         .background(Color(.systemGray6))

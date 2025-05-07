@@ -11,6 +11,25 @@
 import Foundation
 import SwiftUI
 
+//enum ReactionType {
+//    case sad, neutral, happy
+//
+//    var value: Int {
+//        switch self {
+//        case .happy: return 100
+//        case .neutral: return 50
+//        case .sad: return 0
+//        }
+//    }
+//
+//    var emoji: String {
+//        switch self {
+//        case .happy: return "😊"
+//        case .neutral: return "😐"
+//        case .sad: return "😟"
+//        }
+//    }
+//}
 enum ReactionType {
     case sad, neutral, happy
 
@@ -27,6 +46,14 @@ enum ReactionType {
         case .happy: return "😊"
         case .neutral: return "😐"
         case .sad: return "😟"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .happy: return .green
+        case .neutral: return .yellow
+        case .sad: return .red
         }
     }
 }
