@@ -32,14 +32,13 @@ Zenframe is a full-stack news reader that helps you focus on uplifting content w
 
 ```bash
 # clone and enter the repo
-git clone https://github.com/<org>/Zenframe.git
+git clone https://github.com/CS-UH-2012-Zenframe/Zenframe.git
 cd Zenframe/server
 
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-export FLASK_APP=app.py  # default port 5000
-flask run
+python3 run.py
 ```
 ### Frontend (iOS)
 
