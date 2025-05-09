@@ -50,6 +50,9 @@ python3 run.py
 # Running Tests
 
 #### To run the tests and generate coverage
+
+`cd server`
+
 run `python3 -m coverage run -m pytest --disable-warnings`
 
 #### To see coverage report
