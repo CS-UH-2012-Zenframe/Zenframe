@@ -43,7 +43,9 @@ python3 run.py
 ### Frontend (iOS)
 
 1. Open `Zenframe/Zenframe.xcodeproj` in Xcode 15 or later.
-2. Choose **iPhone 15 Pro** (or any simulator) and press CMD + Run to launch the frontend on the simulator.
+2. Connect your iPhone using cable to your Macbook.
+3. In Constants.swift, replace URL by your Flask server's IP address from above like this: `static let baseURL = "http://10.228.549.50:8000"`
+4. Run the app.
 
 ---
 
