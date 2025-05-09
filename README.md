@@ -20,9 +20,9 @@ Zenframe is a full-stack news reader that helps you focus on uplifting content w
 | ----------------- | -------------------------------------------- | -------------------------------------------- |
 | iOS client        | **SwiftUI**                                  | Navigation, authentication, state management |
 | API service       | **Flask** (Python)                           | REST endpoints, CORS, auth stubs             |
-| NLP micro-service | **FastAPI**                                  | Sentiment analysis & summarisation           |
+| micro-service     | **LLM API**                                  | Sentiment analysis & summarisation           |
 | Database          | **MongoDB** (pymongo / mongomock for tests)  | Articles, users, comments                    |
-| CI / Tests        | **pytest + coverage**,                       | >90 % backend statement coverage             |
+| Tests             | **pytest + coverage**                        | >90% statement coverage                      |
 
 ---
 
