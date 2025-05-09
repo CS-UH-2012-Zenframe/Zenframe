@@ -36,7 +36,7 @@ git clone https://github.com/CS-UH-2012-Zenframe/Zenframe.git
 cd Zenframe/server
 
 python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 python3 run.py
 ```
@@ -47,23 +47,17 @@ python3 run.py
 
 ---
 
-## Running Tests
+# Running Tests
 
-### Backend
+#### To run the tests and generate coverage
+run `python3 -m coverage run -m pytest --disable-warnings`
 
-DETAIL INFO ABOUT RUNNING BACKEND TESTS
+#### To see coverage report
+run `coverage report`
 
-### Frontend
+#### To generate html detailed coverage report
+run `coverage html`
 
-DETAIL INFO ABOUT RUNNING FRONTEND TESTS
-
-##To run the Test
-python -m pytest tests/ -v --cov=app.models --cov=app.news.routes --cov=app.utils --cov-report=term-missing
-
-
-python3 -m coverage run -m pytest --disable-warnings
-
-coverage report
 ---
 
 ## License
