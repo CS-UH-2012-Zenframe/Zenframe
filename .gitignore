@@ -6,3 +6,5 @@ server/.venv
 server/.env
 *cpython*
 .pytest_cache
+env/
+server/env

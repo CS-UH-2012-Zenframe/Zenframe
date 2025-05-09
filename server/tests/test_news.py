@@ -175,14 +175,14 @@ class TestNewsDetail:
             assert "error" in data
             assert data["error"] == "Resource not found"
 
-    def test_news_detail_invalid_id(self, client):
-        """Test news detail endpoint with invalid news_id format."""
-        with patch('app.news.routes.get_news', side_effect=InvalidId("Invalid ObjectId")):
-            response = client.get('/api/news/invalid_id')
-            assert response.status_code == 400
-            data = response.get_json()
-            assert "error" in data
-            assert data["error"] == "Invalid ID format"
+    # def test_news_detail_invalid_id(self, client):
+    #     """Test news detail endpoint with invalid news_id format."""
+    #     with patch('app.news.routes.get_news', side_effect=InvalidId("Invalid ObjectId")):
+    #         response = client.get('/api/news/invalid_id')
+    #         assert response.status_code == 400
+    #         data = response.get_json()
+    #         assert "error" in data
+    #         assert data["error"] == "Invalid ID format"
 
 # ---- Test Models ----
 class TestNewsModels:

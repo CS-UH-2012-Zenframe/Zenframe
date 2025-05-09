@@ -14,3 +14,4 @@ nltk
 pytest 
 pytest-cov 
 mongomock # only needed once to download corpora
+coverage

@@ -60,6 +60,10 @@ DETAIL INFO ABOUT RUNNING FRONTEND TESTS
 ##To run the Test
 python -m pytest tests/ -v --cov=app.models --cov=app.news.routes --cov=app.utils --cov-report=term-missing
 
+
+python3 -m coverage run -m pytest --disable-warnings
+
+coverage report
 ---
 
 ## License
