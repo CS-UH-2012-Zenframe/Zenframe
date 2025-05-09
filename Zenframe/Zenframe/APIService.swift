@@ -1,5 +1,8 @@
 import Foundation
 
+
+struct ReactionCount: Decodable { let count: Int }
+
 class APIService {
     static let shared = APIService()
     
@@ -169,6 +172,19 @@ class APIService {
         return try await authorizedRequest("\(Constants.Endpoints.news)/\(newsId)/add_comment", 
                                          method: "POST",
                                          body: requestBody)
+    }
+    
+    // MARK: - Reaction Methods
+    struct EmptyResponse: Decodable {}
+
+    func addReaction(newsId: String, reactionType: Int) async throws {
+        _ = try await authorizedRequest("/api/news/\(newsId)/add_reaction/\(reactionType)", method: "GET") as EmptyResponse
+    }
+
+    func getReactionCount(newsId: String, reactionType: Int) async throws -> Int {
+        let result: ReactionCount = try await request(
+            "/api/news/\(newsId)/get_reaction/\(reactionType)")
+        return result.count
     }
     
     // MARK: - User Methods

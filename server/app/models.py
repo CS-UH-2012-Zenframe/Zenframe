@@ -98,3 +98,19 @@ def list_comments(news_id: str) -> List[Dict]:
         doc["comment_id"] = str(doc.pop("_id"))
         res.append(doc)
     return res
+
+def add_reaction(news_id, reaction_type):
+    reaction = {
+        "news_id": news_id,
+        "reaction_type": reaction_type,
+    }
+    _id = mongo.db.Reactions.insert_one(reaction).inserted_id
+    return str(_id)
+
+
+def get_reaction(news_id, reaction_type):
+    query = {
+        "news_id": str(news_id),                 # ensure comparable type
+        "reaction_type": str(reaction_type)      # stored as string in DB
+    }
+    return mongo.db.Reactions.count_documents(query)
