@@ -8,11 +8,11 @@ Zenframe is a full-stack news reader that helps you focus on uplifting content w
 
 ## Key Features
 
+* **AI Summaries** — AI-powered, neutral one-liners for faster reading.
 * **Good-News-Only filter** — hide articles whose positivity score falls below a user-set threshold.
-* **Crisis Support** — one-tap access to helplines and self-help coping strategies, even offline.
 * **Commenting & Moderation** — post, edit, and flag comments with profanity and length checks.
 * **Emoji Reactions & Happiness rating** — live sentiment bar on every story.
-* **AI Summaries** — AI-powered, neutral one-liners for faster reading.&#x20;
+* **Crisis Support** — one-tap access to helplines and self-help coping strategies, even offline.&#x20;
 
 ---
 
