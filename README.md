@@ -2,6 +2,8 @@
 
 Zenframe is a full-stack news reader that helps you focus on uplifting content while still offering crisis-support resources when the feed feels overwhelming. It was built as the final project for NYUAD CS-UH 2012 Software Engineering (Spring 2025).&#x20;
 
+✨ [View the demo video here](https://drive.google.com/file/d/13V4y74hfnGODroOePAPi_Ns4wxrG3tZG/view?usp=sharing)
+
 ---
 
 ## Key Features
@@ -53,7 +55,6 @@ python3 run.py
 3. In Constants.swift, replace URL by IP address from above like this:
 4. `static let baseURL = "http://10.228.549.50:8000"`
 5. Run the app.
-
 ---
 
 # Running Tests
