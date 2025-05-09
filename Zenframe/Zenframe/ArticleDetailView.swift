@@ -216,7 +216,7 @@ struct ArticleDetailView: View {
                 ForEach(article.comments.reversed()) { comment in
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .top, spacing: 6) {
-                            Text("Absera")                 // ← fixed label
+                            Text("Anonymous")                 // ← fixed label
                                 .font(.subheadline)
 
                             Text(comment.comment_content)
