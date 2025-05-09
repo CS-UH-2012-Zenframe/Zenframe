@@ -39,13 +39,16 @@ python3 -m venv .venv && source .venv/bin/activate
 pip3 install -r requirements.txt
 
 python3 run.py
+
+# the backend server will start running. Please take note of the last IP address shown.
 ```
 ### Frontend (iOS)
 
 1. Open `Zenframe/Zenframe.xcodeproj` in Xcode 15 or later.
 2. Connect your iPhone using cable to your Macbook.
-3. In Constants.swift, replace URL by your Flask server's IP address from above like this: `static let baseURL = "http://10.228.549.50:8000"`
-4. Run the app.
+3. In Constants.swift, replace URL by IP address from above like this:
+4. `static let baseURL = "http://10.228.549.50:8000"`
+5. Run the app.
 
 ---
 
