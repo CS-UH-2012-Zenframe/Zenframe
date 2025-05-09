@@ -29,7 +29,10 @@ Zenframe is a full-stack news reader that helps you focus on uplifting content w
 ## Quick Start
 
 ### Backend
-
+1. Make sure `mongodb` is installed in your system.
+2. Get API keys from [NewsAPI](https://newsapi.org/docs/authentication) and [TogetherAPI](https://api.together.xyz/)
+* For grading purposes, we will attach our API keys in our report document.
+  
 ```bash
 # clone and enter the repo
 git clone https://github.com/CS-UH-2012-Zenframe/Zenframe.git
@@ -38,6 +41,7 @@ cd Zenframe/server
 python3 -m venv .venv && source .venv/bin/activate
 pip3 install -r requirements.txt
 
+# rename .env.example to .env and replace NEWS_API_TOKEN and TOGETHER_API_KEY from keys above 
 python3 run.py
 
 # the backend server will start running. Please take note of the last IP address shown.
