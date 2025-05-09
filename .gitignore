@@ -5,3 +5,4 @@ Backend/venv/
 server/.venv
 server/.env
 *cpython*
+.pytest_cache
