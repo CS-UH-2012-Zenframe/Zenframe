@@ -1,10 +1,3 @@
-//
-//  ArticleDetailView.swift
-//  Zenframe
-//
-//  Created by Muhammad Ali Asgar Fataymamode on 11/04/2025.
-//
-
 
 import SwiftUI
 import SafariServices
@@ -19,9 +12,28 @@ struct ArticleDetailView: View {
     @State private var errorMessage: String? = nil
     @State private var showingSafari = false
     
+    // Simplified reaction state - just track which one is selected
+    @State private var selectedReaction: ReactionType? = nil
+    @AppStorage("reaction_") private var savedReaction: String = ""
+    
     @EnvironmentObject var sessionStore: SessionStore
     
     let prohibitedWords = ["stupid", "idiot", "hate"]
+    
+    // Enum for reaction types
+    enum ReactionType: String {
+        case happy = "happy"
+        case neutral = "neutral"
+        case sad = "sad"
+        
+        var emoji: String {
+            switch self {
+            case .happy: return "😁"
+            case .neutral: return "😐"
+            case .sad: return "🥺"
+            }
+        }
+    }
 
     var badgeColor: Color {
         guard let score = article?.positivity else { return .gray }
@@ -69,6 +81,9 @@ struct ArticleDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .background(Color.gray.opacity(0.2).ignoresSafeArea())
         .onAppear {
+            // Load the saved reaction when the view appears
+            loadSavedReaction()
+            
             Task {
                 await fetchArticleDetail()
             }
@@ -77,6 +92,34 @@ struct ArticleDetailView: View {
             if let article = article, let url = URL(string: article.source_url) {
                 SafariView(url: url)
             }
+        }
+    }
+    
+    private func loadSavedReaction() {
+        // Use the article ID as part of the key to make it unique per article
+        let reactionKey = "reaction_\(newsId)"
+        if let storedReaction = UserDefaults.standard.string(forKey: reactionKey) {
+            // Convert the stored string back to the enum
+            if storedReaction == ReactionType.happy.rawValue {
+                selectedReaction = .happy
+            } else if storedReaction == ReactionType.neutral.rawValue {
+                selectedReaction = .neutral
+            } else if storedReaction == ReactionType.sad.rawValue {
+                selectedReaction = .sad
+            }
+        }
+    }
+    
+    private func saveReaction(type: ReactionType?) {
+        // Use the article ID as part of the key to make it unique per article
+        let reactionKey = "reaction_\(newsId)"
+        
+        if let type = type {
+            // Save the reaction type as a string
+            UserDefaults.standard.set(type.rawValue, forKey: reactionKey)
+        } else {
+            // If nil, remove any saved reaction
+            UserDefaults.standard.removeObject(forKey: reactionKey)
         }
     }
     
@@ -126,61 +169,15 @@ struct ArticleDetailView: View {
                             .stroke(Color.black, lineWidth: 1)
                     )
                     
-                    HStack(spacing: 40) {
-                    
-                    Button("😁") {
-                            showingSafari = false
-                        }
-                        .padding(.vertical, 6)
-                        .frame(maxWidth: .infinity)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.black, lineWidth: 1)
-                        )
-                        Text("5")
-                            .font(.body)
-                            .foregroundColor(.white.opacity(0.8))
-
-                        Button("😐") {
-                                showingSafari = false
-                            }
-                            .padding(.vertical, 6)
-                            .frame(maxWidth: .infinity)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.black, lineWidth: 1)
-                            )
-                        Text("2")
-                            .font(.body)
-                            .foregroundColor(.white.opacity(0.8))
-
-                        
-                        Button("🥺") {
-                                showingSafari = false
-                            }
-                            .padding(.vertical, 6)
-                            .frame(maxWidth: .infinity)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.black, lineWidth: 1)
-                            )
-                        Text("1")
-                            .font(.body)
-                            .foregroundColor(.white.opacity(0.8))
-
-//                    Button(action: { viewModel.addReaction(.neutral) }) {
-//                        Text(ReactionType.neutral.emoji)
-//                            .font(.largeTitle)
-//                    }
-//                    Button(action: { viewModel.addReaction(.happy) }) {
-//                        Text(ReactionType.happy.emoji)
-//                            .font(.largeTitle)
-//                    }
-                }
-                .padding(.top, 10)
+                    // Updated simplified reaction section without counts
+                    HStack(spacing: 20) {
+                        reactionButton(type: .happy, isSelected: selectedReaction == .happy)
+                        reactionButton(type: .neutral, isSelected: selectedReaction == .neutral)
+                        reactionButton(type: .sad, isSelected: selectedReaction == .sad)
+                    }
+                    .padding(.top, 10)
                 }
                 .padding()
-//                .background(Color.white.opacity(0.3))
                 .cornerRadius(20)
 
                 // Comments Section
@@ -190,7 +187,7 @@ struct ArticleDetailView: View {
                 ForEach(article.comments.reversed()) { comment in
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .top, spacing: 6) {
-                            Text("Anonymous")                 // ← fixed label
+                            Text("Absera")                 // ← fixed label
                                 .font(.subheadline)
 
                             Text(comment.comment_content)
@@ -246,10 +243,41 @@ struct ArticleDetailView: View {
                     .cornerRadius(10)
                 }
                 .padding()
-//                .background(Color.white.opacity(0.3))
                 .cornerRadius(20)
             }
             .padding()
+        }
+    }
+    
+    // Simplified reaction button without count
+    private func reactionButton(type: ReactionType, isSelected: Bool) -> some View {
+        Button(action: {
+            handleReaction(type: type)
+        }) {
+            Text(type.emoji)
+                .font(.system(size: 20))
+                .foregroundColor(.white)
+                .padding(.vertical, 6)
+                .frame(maxWidth: .infinity)
+                .background(isSelected ? Color.white.opacity(0.3) : Color.clear)
+                .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.white, lineWidth: 1)
+                )
+        }
+    }
+    
+    // Simplified reaction handling
+    private func handleReaction(type: ReactionType) {
+        // If clicking the same reaction, toggle it off
+        if selectedReaction == type {
+            selectedReaction = nil
+            saveReaction(type: nil)
+        } else {
+            // Otherwise, select the new reaction
+            selectedReaction = type
+            saveReaction(type: type)
         }
     }
     
@@ -303,6 +331,9 @@ struct ArticleDetailView: View {
             commentText = ""
         } catch let error as APIService.APIError {
             errorMessage = "Comment Added!"
+            commentText = ""
+            await fetchArticleDetail()
+            commentText = ""
         } catch {
             errorMessage = "Failed to post comment: \(error.localizedDescription)"
         }
