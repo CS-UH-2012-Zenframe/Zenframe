@@ -216,7 +216,7 @@ struct ArticleDetailView: View {
                 ForEach(article.comments.reversed()) { comment in
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .top, spacing: 6) {
-                            Text("Anonymous")                 // ← fixed label
+                            Text("Anonymous")                 // leave comments as anonymous to protect identity
                                 .font(.subheadline)
 
                             Text(comment.comment_content)
