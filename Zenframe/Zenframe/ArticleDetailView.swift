@@ -16,21 +16,34 @@ struct ArticleDetailView: View {
     @State private var selectedReaction: ReactionType? = nil
     @AppStorage("reaction_") private var savedReaction: String = ""
     
+    @State private var reactionCounts: [ReactionType: Int] = [.happy: 0, .neutral: 0, .sad: 0]
+    private var happinessRating: Int {
+        let h = Double(reactionCounts[.happy] ?? 0)
+        let n = Double(reactionCounts[.neutral] ?? 0)
+        let s = Double(reactionCounts[.sad] ?? 0)
+        let total = h + n + s
+
+        guard total > 0 else { return 0 }
+
+        let score = (h * 1.0 + n * 0.5 + s * 0.0) / total
+        return Int(round(score * 100))  // out of 100
+    }
+    
     @EnvironmentObject var sessionStore: SessionStore
     
     let prohibitedWords = ["stupid", "idiot", "hate"]
     
     // Enum for reaction types
-    enum ReactionType: String {
-        case happy = "happy"
-        case neutral = "neutral"
-        case sad = "sad"
-        
+    enum ReactionType: Int, CaseIterable {
+        case happy = 1     // 😀
+        case neutral = 2   // 😐
+        case sad = 3       // 😢
+
         var emoji: String {
             switch self {
-            case .happy: return "😁"
+            case .happy:   return "😁"
             case .neutral: return "😐"
-            case .sad: return "🥺"
+            case .sad:     return "🥺"
             }
         }
     }
@@ -87,6 +100,9 @@ struct ArticleDetailView: View {
             Task {
                 await fetchArticleDetail()
             }
+            
+            Task { await fetchReactionCounts() }
+
         }
         .sheet(isPresented: $showingSafari) {
             if let article = article, let url = URL(string: article.source_url) {
@@ -95,18 +111,27 @@ struct ArticleDetailView: View {
         }
     }
     
-    private func loadSavedReaction() {
-        // Use the article ID as part of the key to make it unique per article
-        let reactionKey = "reaction_\(newsId)"
-        if let storedReaction = UserDefaults.standard.string(forKey: reactionKey) {
-            // Convert the stored string back to the enum
-            if storedReaction == ReactionType.happy.rawValue {
-                selectedReaction = .happy
-            } else if storedReaction == ReactionType.neutral.rawValue {
-                selectedReaction = .neutral
-            } else if storedReaction == ReactionType.sad.rawValue {
-                selectedReaction = .sad
+    private func fetchReactionCounts() async {
+        await withTaskGroup(of: (ReactionType, Int).self) { group in
+            for kind in ReactionType.allCases {
+                group.addTask {
+                    let c = try? await APIService.shared.getReactionCount(newsId: newsId,
+                                                                         reactionType: kind.rawValue)
+                    return (kind, c ?? 0)
+                }
             }
+            var fresh = reactionCounts
+            for await (kind, c) in group { fresh[kind] = c }
+            reactionCounts = fresh
+        }
+    }
+    
+    private func loadSavedReaction() {
+        let reactionKey = "reaction_\(newsId)"
+
+        let storedValue = UserDefaults.standard.integer(forKey: reactionKey) // 0 if missing
+        if let reaction = ReactionType(rawValue: storedValue) {
+            selectedReaction = reaction
         }
     }
     
@@ -176,6 +201,10 @@ struct ArticleDetailView: View {
                         reactionButton(type: .sad, isSelected: selectedReaction == .sad)
                     }
                     .padding(.top, 10)
+                    
+                    Text("Happiness rating: \(happinessRating)%")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
                 .padding()
                 .cornerRadius(20)
@@ -251,33 +280,37 @@ struct ArticleDetailView: View {
     
     // Simplified reaction button without count
     private func reactionButton(type: ReactionType, isSelected: Bool) -> some View {
-        Button(action: {
-            handleReaction(type: type)
-        }) {
-            Text(type.emoji)
-                .font(.system(size: 20))
-                .foregroundColor(.white)
-                .padding(.vertical, 6)
-                .frame(maxWidth: .infinity)
-                .background(isSelected ? Color.white.opacity(0.3) : Color.clear)
-                .cornerRadius(10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.white, lineWidth: 1)
-                )
+        VStack(spacing: 4) {
+            Button { Task { await handleReaction(type: type) } } label: {
+                Text(type.emoji)
+                    .font(.system(size: 20))
+                    .foregroundColor(.white)
+                    .padding(.vertical, 6)
+                    .frame(maxWidth: .infinity)
+                    .background(isSelected ? Color.white.opacity(0.3) : Color.clear)
+                    .cornerRadius(10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.white, lineWidth: 1)
+                    )
+            }
+            Text("\(reactionCounts[type] ?? 0)")
+                .font(.caption2)
         }
     }
+
     
     // Simplified reaction handling
-    private func handleReaction(type: ReactionType) {
-        // If clicking the same reaction, toggle it off
-        if selectedReaction == type {
-            selectedReaction = nil
-            saveReaction(type: nil)
-        } else {
-            // Otherwise, select the new reaction
-            selectedReaction = type
-            saveReaction(type: type)
+    private func handleReaction(type: ReactionType) async {
+        selectedReaction = type
+        saveReaction(type: type)          // keep local persistence if you want
+
+        do {
+            try await APIService.shared.addReaction(newsId: newsId,
+                                                    reactionType: type.rawValue)
+            await fetchReactionCounts()   // pull fresh numbers
+        } catch {
+            print("❌ Failed to record reaction:", error)
         }
     }
     

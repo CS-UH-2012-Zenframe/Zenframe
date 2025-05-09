@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, abort
-from ..models import list_news, get_news, list_comments
+from ..models import list_news, get_news, list_comments, add_reaction, get_reaction
 from ..utils import obj_id
 
 
@@ -32,3 +32,14 @@ def news_detail(news_id):
         abort(404)
     doc["comments"] = list_comments(news_id)
     return jsonify(doc), 200
+
+@news_bp.get("/news/<news_id>/add_reaction/<reaction_type>")
+def news_reaction(news_id, reaction_type):
+    res = add_reaction(news_id, reaction_type)
+    return jsonify({"added":"true"}), 200
+
+
+@news_bp.get("/news/<news_id>/get_reaction/<reaction_type>")
+def get_news_reaction(news_id, reaction_type):
+    res = get_reaction(news_id, reaction_type)
+    return jsonify({"count":res}), 200
